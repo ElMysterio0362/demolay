@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#050d1f">
+  <title>Contatos · Gabinete Estadual DeMolay SP</title>
+  <meta name="description" content="Diretório de contatos oficiais do Gabinete Estadual da Ordem DeMolay de São Paulo.">
+  <link rel="icon" type="image/png" href="assets/logo.png" id="favicon">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=IBM+Plex+Mono:wght@500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <a class="skip-link" href="#directory">Pular para os contatos</a>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="logo-wrap">
+        <img id="logo" src="assets/logo.png" alt="Brasão do Gabinete Estadual DeMolay São Paulo" width="144" height="144">
+      </div>
+      <p class="eyebrow" id="eyebrow">DeMolay São Paulo • Gestão 2026/2027</p>
+      <h1 class="title" id="title">Gabinete Estadual</h1>
+      <p class="subtitle" id="subtitle"></p>
+      <p class="tagline">Diretório de contatos oficiais</p>
+      <a href="#directory" class="explore-btn" aria-label="Ir para os contatos">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </a>
+    </div>
+  </header>
+
+  <div id="controls" class="controls">
+    <div class="container">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <label for="search" class="sr-only">Buscar contatos</label>
+        <input type="search" id="search" placeholder="Busque por Nome, Cargo ou Área..." autocomplete="off" enterkeyhint="search">
+        <button type="button" id="clear-btn" class="icon-btn clear-btn" aria-label="Limpar busca" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+        <button type="button" id="filter-btn" class="icon-btn filter-btn" aria-label="Filtrar por área" aria-haspopup="true" aria-expanded="false" aria-controls="filter-panel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8.5V19l-4 2v-7.5z"/></svg>
+          <span class="filter-dot" hidden></span>
+        </button>
+
+        <div id="filter-panel" class="filter-panel" role="dialog" aria-label="Filtrar por área" hidden>
+          <div class="filter-head">
+            <p>Filtrar por área</p>
+            <span id="filter-badge" class="badge">Todas</span>
+          </div>
+          <div id="filter-options" class="filter-options" role="radiogroup" aria-label="Áreas"></div>
+        </div>
+      </div>
+      <p id="result-count" class="result-count" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <main id="directory" class="container directory" tabindex="-1">
+    <div id="directory-container">
+      <p class="loader">Carregando gabinete...</p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p class="mono" id="footer-line"></p>
+    <p class="mono dim">© <span id="footer-year">2026/2027</span> Gabinete Estadual da Ordem DeMolay de São Paulo</p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="data/membros.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
