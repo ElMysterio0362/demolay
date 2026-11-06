@@ -7,10 +7,9 @@ const CONFIG = {
   gestao: "Gestão 2026/2027",
   linhaSuperior: "DeMolay São Paulo", // aparece antes de "• Gestão ..."
   titulo: "Gabinete Estadual",
-  subtitulo: "Unidos pelo Ideal", // texto em itálico dourado abaixo do título
+  subtitulo: "Unidos pelo Ideal.", // 2ª linha do título, em branco mais suave (deixe "" para ocultar)
   logo: "assets/logo.png", // troque pelo caminho do brasão
   areaDestaque: "Direção Estadual", // seção com cards maiores
-  rodape: "Desenvolvido para o Gabinete Estadual de São Paulo",
   ddi: "55",
 };
 
@@ -120,9 +119,8 @@ function aplicarConfig() {
   $("subtitle").textContent = CONFIG.subtitulo;
   $("logo").src = CONFIG.logo;
   $("favicon").href = CONFIG.logo;
-  $("footer-line").textContent = CONFIG.rodape;
-  const anos = (CONFIG.gestao.match(/\d{4}\s*\/\s*\d{4}/) || [""])[0];
-  if (anos) $("footer-year").textContent = anos.replace(/\s/g, "");
+  const anos = (CONFIG.gestao.match(/\d{4}\s*\/\s*\d{4}/) || [""])[0].replace(/\s/g, "");
+  if (anos) $("footer-copy").textContent = `© ${anos} Gabinete Estadual da Ordem DeMolay do Estado de São Paulo.`;
 }
 
 /* ---------- Busca ---------- */
@@ -187,9 +185,7 @@ function render() {
     els.container.innerHTML = `
       <div class="empty">
         <p>Nenhum contato encontrado${termo ? ` para “${escapeHtml(termo)}”` : ""}.</p>
-        <p style="font-size:1rem;font-style:normal;font-family:var(--sans);color:var(--muted)">
-          Confira a grafia ou tente buscar só pelo primeiro nome.
-        </p>
+        <p class="empty-hint">Confira a grafia ou tente buscar só pelo primeiro nome.</p>
         <button type="button" class="btn btn-call" id="reset-btn" style="margin:16px auto 0">Limpar busca e filtros</button>
       </div>`;
     $("reset-btn").addEventListener("click", resetar);
@@ -208,6 +204,7 @@ function render() {
       return `
         <section class="section" aria-labelledby="sec-${slug(area)}">
           <div class="section-head">
+            <p class="section-eyebrow">${doGrupo.length === 1 ? "1 contato" : `${doGrupo.length} contatos`}</p>
             <h2 id="sec-${slug(area)}">${escapeHtml(area)}</h2>
           </div>
           <div class="grid${destaque ? " grid--featured" : ""}">${cards}</div>
@@ -365,71 +362,8 @@ function resetarBusca() {
   render();
 }
 
-/* ---------- Partículas douradas ---------- */
-function particulas() {
-  const canvas = $("particles");
-  const ctx = canvas.getContext("2d");
-  const reduzir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let w, h, dpr, pts = [], raf;
-
-  function criar() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    w = window.innerWidth;
-    h = window.innerHeight;
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const n = Math.round(Math.min(110, (w * h) / 11000));
-    pts = Array.from({ length: n }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      r: Math.random() * 1.4 + 0.3,
-      vx: (Math.random() - 0.5) * 0.12,
-      vy: -(Math.random() * 0.18 + 0.03),
-      a: Math.random() * Math.PI * 2,
-      va: Math.random() * 0.02 + 0.005,
-    }));
-  }
-
-  function desenhar() {
-    ctx.clearRect(0, 0, w, h);
-    for (const p of pts) {
-      if (!reduzir) {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.a += p.va;
-        if (p.y < -5) { p.y = h + 5; p.x = Math.random() * w; }
-        if (p.x < -5) p.x = w + 5;
-        if (p.x > w + 5) p.x = -5;
-      }
-      const alpha = 0.25 + 0.45 * (0.5 + 0.5 * Math.sin(p.a));
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(230, 198, 107, ${alpha})`;
-      ctx.shadowColor = "rgba(201, 162, 39, 0.8)";
-      ctx.shadowBlur = p.r * 4;
-      ctx.fill();
-    }
-    if (!reduzir) raf = requestAnimationFrame(desenhar);
-  }
-
-  criar();
-  desenhar();
-  let t;
-  window.addEventListener("resize", () => {
-    clearTimeout(t);
-    t = setTimeout(() => { criar(); if (reduzir) desenhar(); }, 150);
-  });
-  document.addEventListener("visibilitychange", () => {
-    if (reduzir) return;
-    if (document.hidden) cancelAnimationFrame(raf);
-    else raf = requestAnimationFrame(desenhar);
-  });
-}
-
 /* ---------- Início ---------- */
 aplicarConfig();
 renderFiltro();
 render();
 ligarEventos();
-particulas();
