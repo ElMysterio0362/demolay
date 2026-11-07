@@ -8,7 +8,7 @@ const CONFIG = {
   linhaSuperior: "DeMolay São Paulo", // aparece antes de "• Gestão ..."
   titulo: "Gabinete Estadual",
   subtitulo: "Unidos pelo Ideal.", // 2ª linha do título, em branco mais suave (deixe "" para ocultar)
-  logo: "assets/logo.png", // troque pelo caminho do brasão
+  logo: "", // brasão no topo (ex.: "assets/brasao.png"); deixe "" para não mostrar
   areaDestaque: "Direção Estadual", // seção com cards maiores
   ddi: "55",
 };
@@ -135,8 +135,11 @@ function aplicarConfig() {
   $("eyebrow").textContent = `${CONFIG.linhaSuperior} • ${CONFIG.gestao}`;
   $("title").textContent = CONFIG.titulo;
   $("subtitle").textContent = CONFIG.subtitulo;
-  $("logo").src = CONFIG.logo;
-  $("favicon").href = CONFIG.logo;
+  if (CONFIG.logo) {
+    $("logo").src = CONFIG.logo;
+    $("logo").hidden = false;
+    $("favicon").href = CONFIG.logo;
+  }
   const anos = (CONFIG.gestao.match(/\d{4}\s*\/\s*\d{4}/) || [""])[0].replace(/\s/g, "");
   if (anos) $("footer-copy").textContent = `© ${anos} Gabinete Estadual da Ordem DeMolay do Estado de São Paulo.`;
 }

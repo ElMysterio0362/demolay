@@ -8,7 +8,6 @@ index.html          página
 css/style.css       visual
 js/app.js           busca, filtro, cards e configuração do cabeçalho
 data/membros.js     lista de membros (o único arquivo que você precisa editar no dia a dia)
-assets/logo.png     brasão do Gabinete (placeholder por enquanto)
 assets/logo-demolay-sp.png, bg-header.png, bg-footer.png
                     logo e padrões geométricos do site da DMSP
 ```
@@ -54,8 +53,9 @@ Abra `data/membros.js` e copie um bloco:
 ## Trocar o logo, o subtítulo e a gestão
 
 O logo "DeMolay São Paulo" da barra superior é o da DMSP (`assets/logo-demolay-sp.png`).
-O brasão grande do meio é `assets/logo.png`. Para trocá-lo, substitua `assets/logo.png` por um arquivo com o mesmo nome (de preferência PNG
-quadrado com fundo transparente, 512×512 px ou mais).
+Para mostrar um brasão grande acima do título, coloque o arquivo em `assets/` (PNG
+quadrado com fundo transparente, 512×512 px ou mais) e preencha `logo` no `CONFIG`.
+Com `logo: ""` nenhum emblema aparece.
 
 Para usar outro nome de arquivo, ou mudar os textos do cabeçalho, edite o bloco
 `CONFIG` no topo de `js/app.js`:
@@ -66,7 +66,7 @@ const CONFIG = {
   linhaSuperior: "DeMolay São Paulo",
   titulo: "Gabinete Estadual",
   subtitulo: "Unidos pelo Ideal.",  // 2ª linha do título ("" para ocultar)
-  logo: "assets/logo.png",
+  logo: "",                         // ex.: "assets/brasao.png"
   ...
 };
 ```
