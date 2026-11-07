@@ -382,6 +382,17 @@ body {
   letter-spacing: -0.04em;
   overflow-wrap: anywhere;
 }
+.card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: -6px 0 14px; }
+.tag {
+  padding: 3px 10px;
+  font-size: 0.72rem; font-weight: 700;
+  color: var(--ink-soft);
+  background: var(--cream-strong);
+  border-radius: 999px;
+}
+.tag--intl { color: var(--wine); background: rgba(124, 21, 42, 0.08); }
+.card--featured .tag { color: #fff; background: rgba(255, 255, 255, 0.12); }
+
 .card-phone {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   margin-top: auto;
@@ -588,7 +599,7 @@ body {
 @media (min-width: 900px) {
   .hero-inner { padding-top: 56px; }
   .grid { grid-template-columns: repeat(3, 1fr); }
-  .grid--featured { grid-template-columns: repeat(2, 1fr); }
+  .grid--featured { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
   .card--featured { padding: 30px 28px 26px; }
   .card--featured .card-nome { font-size: 2.3rem; }
   .hero-logo { width: 140px; height: 140px; }

@@ -16,10 +16,12 @@ const CONFIG = {
 /* ---------- Utilitários ---------- */
 const PREPOSICOES = new Set(["da", "das", "de", "do", "dos", "e", "di", "du"]);
 
-/** "CARLOS EDUARDO DA SILVA FILHO" -> "Carlos Eduardo da Silva Filho" */
+/** "CARLOS EDUARDO DA SILVA FILHO" -> "Carlos Eduardo da Silva Filho".
+ *  Nomes que já têm minúsculas são mantidos como estão (ex.: "Pedro De Cico"). */
 function titleCase(nome) {
-  return String(nome || "")
-    .trim()
+  const limpo = String(nome || "").trim().replace(/\s+/g, " ");
+  if (limpo !== limpo.toLocaleUpperCase("pt-BR")) return limpo;
+  return limpo
     .toLocaleLowerCase("pt-BR")
     .split(/\s+/)
     .map((p, i) =>
@@ -30,10 +32,10 @@ function titleCase(nome) {
     .join(" ");
 }
 
-/** Só dígitos, sem DDI 55 na frente. */
-function soDigitos(tel) {
+/** Só dígitos, sem o DDI na frente. */
+function soDigitos(tel, ddi = CONFIG.ddi) {
   let d = String(tel || "").replace(/\D/g, "");
-  if (d.length > 11 && d.startsWith(CONFIG.ddi)) d = d.slice(CONFIG.ddi.length);
+  if (ddi === CONFIG.ddi && d.length > 11 && d.startsWith(ddi)) d = d.slice(ddi.length);
   return d;
 }
 
@@ -77,18 +79,34 @@ const ICON = {
 
 /* ---------- Dados ---------- */
 const membros = (typeof MEMBROS !== "undefined" ? MEMBROS : []).map((m, ordem) => {
-  const digitos = soDigitos(m.digitos || m.telefone);
+  const ddi = String(m.ddi || CONFIG.ddi).replace(/\D/g, "");
+  const digitos = soDigitos(m.digitos || m.telefone, ddi);
+  const nacional = ddi === CONFIG.ddi;
   const nome = titleCase(m.nome);
   const area = String(m.area || "Outros").trim();
+  const detalhe = String(m.detalhe || "").trim();
+  let telefone = "";
+  if (digitos) {
+    if (nacional) telefone = formatarTelefone(digitos);
+    else if (ddi === "1" && digitos.length === 10)
+      telefone = `+1 (${digitos.slice(0, 3)}) ${digitos.slice(3, 6)}-${digitos.slice(6)}`;
+    else telefone = `+${ddi} ${String(m.telefone || digitos).trim()}`;
+  }
   return {
     nome,
     cargo: String(m.cargo || "").trim(),
     area,
+    detalhe,
+    ddi,
     digitos,
-    telefone: digitos ? formatarTelefone(digitos) : "",
+    internacional: !nacional,
+    telefone,
     ordem,
-    busca: normalizar(`${nome} ${m.cargo} ${area}`),
+    busca: normalizar(`${nome} ${m.cargo} ${area} ${detalhe}`),
   };
+}).map((m) => {
+  m.palavras = m.busca.split(/[^a-z0-9ª]+/).filter(Boolean);
+  return m;
 });
 
 // Áreas na ordem em que aparecem em membros.js (a área de destaque sempre primeiro)
@@ -126,16 +144,23 @@ function aplicarConfig() {
 /* ---------- Busca ---------- */
 function filtrar() {
   const tokens = normalizar(state.termo).split(/\s+/).filter(Boolean);
-  return membros.filter((m) => {
-    if (state.area !== "all" && m.area !== state.area) return false;
-    return tokens.every((t) => {
-      const td = t.replace(/\D/g, "");
-      if (td.length >= 3 && td.length === t.replace(/[\s().-]/g, "").length) {
-        return m.digitos.includes(td);
-      }
-      return m.busca.includes(t);
-    });
-  });
+  const daArea = membros.filter((m) => state.area === "all" || m.area === state.area);
+  if (!tokens.length) return daArea;
+
+  const casa = (m, t, estrito) => {
+    const td = t.replace(/\D/g, "");
+    if (td.length >= 3 && td.length === t.replace(/[\s().+-]/g, "").length) {
+      return m.digitos.includes(td);
+    }
+    // No modo estrito, termos curtos ("c", "a+b") precisam ser uma palavra inteira:
+    // assim "macro c" não casa com o "c" de "Conselheiro".
+    if (estrito && t.length <= 2) return m.palavras.includes(t);
+    return m.busca.includes(t);
+  };
+  const estrito = daArea.filter((m) => tokens.every((t, i) => (i === 0 ? casa(m, t, false) : casa(m, t, true))));
+  if (estrito.length || !tokens.slice(1).some((t) => t.length <= 2)) return estrito;
+  // Ninguém casou no modo estrito (ex.: "joao pe" ainda sendo digitado): busca normal.
+  return daArea.filter((m) => tokens.every((t) => casa(m, t, false)));
 }
 
 /* ---------- Renderização ---------- */
@@ -144,7 +169,7 @@ function cardHtml(m, i, destaque) {
   const classes = ["card"];
   if (destaque) classes.push("card--featured");
   if (destaque && prio === 1) classes.push("is-adj");
-  if (!destaque && prio === 2) classes.push("card--lead");
+  if (!destaque && (prio === 2 || /^coordenador/.test(normalizar(m.cargo)))) classes.push("card--lead");
 
   const nome = escapeHtml(m.nome);
   const tel = escapeHtml(m.telefone);
@@ -157,10 +182,10 @@ function cardHtml(m, i, destaque) {
         </button>
       </div>
       <div class="card-actions">
-        <a class="btn btn-wa" href="https://wa.me/${CONFIG.ddi}${m.digitos}" target="_blank" rel="noopener" aria-label="Enviar mensagem no WhatsApp para ${nome}">
+        <a class="btn btn-wa" href="https://wa.me/${m.ddi}${m.digitos}" target="_blank" rel="noopener" aria-label="Enviar mensagem no WhatsApp para ${nome}">
           ${ICON.wa}<span>WhatsApp</span>
         </a>
-        <a class="btn btn-call" href="tel:+${CONFIG.ddi}${m.digitos}" aria-label="Ligar para ${nome}">
+        <a class="btn btn-call" href="tel:+${m.ddi}${m.digitos}" aria-label="Ligar para ${nome}">
           ${ICON.call}<span>Ligar</span>
         </a>
       </div>`
@@ -170,6 +195,7 @@ function cardHtml(m, i, destaque) {
     <article class="${classes.join(" ")}" style="--i:${i}">
       <p class="card-cargo">${escapeHtml(m.cargo)}</p>
       <h3 class="card-nome">${nome}</h3>
+      ${m.detalhe || m.internacional ? `<div class="card-tags">${m.detalhe ? `<span class="tag">${escapeHtml(m.detalhe)}</span>` : ""}${m.internacional ? `<span class="tag tag--intl">Número internacional</span>` : ""}</div>` : ""}
       ${contato}
     </article>`;
 }

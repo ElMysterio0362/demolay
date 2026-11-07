@@ -41,8 +41,14 @@ Abra `data/membros.js` e copie um bloco:
   ordem do arquivo.
 - **telefone / digitos**: `digitos` são só os números com DDD, usados nos botões de
   WhatsApp e Ligar. Se você deixar o campo de fora, ele é calculado a partir do `telefone`.
+- **detalhe** (opcional): etiqueta pequena no card, como `"Macro A+B"` nos Mestres
+  Conselheiros Regionais. Também entra na busca ("macro c" traz só a Macro C).
+- **ddi** (opcional): só para número de fora do Brasil. Ex.: `ddi: "1"` com
+  `telefone: "(321) 410-9356"` vira +1 (321) 410-9356 e o WhatsApp abre `wa.me/13214109356`.
 - Nomes digitados em CAIXA ALTA aparecem em Title Case ("da", "de", "do", "dos" ficam
-  em minúsculas).
+  em minúsculas). Nomes que já têm minúsculas ficam exatamente como escritos.
+- Uma pessoa com dois cargos (ex.: Assessor e Mestre Conselheiro Regional) entra uma
+  vez em cada área.
 - Não esqueça a vírgula entre um bloco e outro.
 
 ## Trocar o logo, o subtítulo e a gestão
