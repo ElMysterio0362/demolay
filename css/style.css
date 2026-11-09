@@ -492,11 +492,6 @@ body {
   color: var(--ink);
   background: linear-gradient(135deg, var(--gold-strong), var(--gold));
 }
-.card--featured.is-adj .card-cargo {
-  color: var(--gold-strong);
-  background: rgba(215, 163, 90, 0.12);
-  border: 1px solid rgba(215, 163, 90, 0.45);
-}
 .card--featured .card-nome {
   color: #fff;
   font-size: 1.85rem;
