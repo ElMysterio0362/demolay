@@ -39,12 +39,17 @@
         <span class="title-muted" id="subtitle"></span>
       </h1>
       <p class="tagline">Diretório de contatos oficiais</p>
+      <div class="hero-stats" aria-hidden="true">
+        <span class="stat"><b id="stat-contatos">0</b> contatos</span>
+        <span class="stat"><b id="stat-areas">0</b> áreas</span>
+      </div>
       <a href="#directory" class="explore-btn" aria-label="Ir para os contatos">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
       </a>
     </div>
   </header>
 
+  <div id="controls-sentinel" aria-hidden="true"></div>
   <div id="controls" class="controls">
     <div class="controls-surface">
       <div class="search-wrap">
@@ -68,6 +73,7 @@
         </div>
       </div>
       <p id="result-count" class="result-count" aria-live="polite"></p>
+      <nav id="quicknav" class="quicknav" aria-label="Ir para uma área"></nav>
     </div>
   </div>
 
@@ -88,10 +94,11 @@
         <a class="footer-site" href="https://www.demolaysp.org.br/" target="_blank" rel="noopener">www.demolaysp.org.br</a>
       </div>
     </div>
-    <a href="#" class="to-top" aria-label="Voltar ao topo">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-    </a>
   </footer>
+
+  <button type="button" id="fab-top" class="fab-top" aria-label="Voltar ao topo">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 

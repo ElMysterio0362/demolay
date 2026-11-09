@@ -195,8 +195,8 @@ function cardHtml(m, i, destaque) {
 
   return `
     <article class="${classes.join(" ")}" style="--i:${i}">
-      <p class="card-cargo">${escapeHtml(m.cargo)}</p>
-      <h3 class="card-nome">${nome}</h3>
+      <p class="card-cargo">${realce(m.cargo)}</p>
+      <h3 class="card-nome">${realce(m.nome)}</h3>
       ${m.detalhe || m.internacional ? `<div class="card-tags">${m.detalhe ? `<span class="tag">${escapeHtml(m.detalhe)}</span>` : ""}${m.internacional ? `<span class="tag tag--intl">Número internacional</span>` : ""}</div>` : ""}
       ${contato}
     </article>`;
@@ -217,6 +217,7 @@ function render() {
         <button type="button" class="btn btn-call" id="reset-btn" style="margin:16px auto 0">Limpar busca e filtros</button>
       </div>`;
     $("reset-btn").addEventListener("click", resetar);
+    aposRender();
     return;
   }
 
@@ -240,6 +241,7 @@ function render() {
     })
     .join("");
   els.container.innerHTML = html;
+  aposRender();
 }
 
 function slug(s) {
@@ -390,8 +392,236 @@ function resetarBusca() {
   render();
 }
 
+/* =========================================================
+   Dinâmica: animações e interações
+   ========================================================= */
+const reduzMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const temHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+/** Destaca no texto os termos buscados (ignorando acentos e maiúsculas). */
+function realce(texto) {
+  const tokens = normalizar(state.termo).split(/\s+/).filter((t) => t && !/^\d+$/.test(t));
+  if (!tokens.length) return escapeHtml(texto);
+  let norm = "";
+  const mapa = [];
+  [...texto].forEach((ch, idx) => {
+    const n = normalizar(ch) || ch.toLowerCase();
+    for (const c of n) { norm += c; mapa.push(idx); }
+  });
+  const chars = [...texto];
+  const marcado = new Array(chars.length).fill(false);
+  tokens.forEach((t) => {
+    let pos = norm.indexOf(t);
+    while (pos !== -1) {
+      for (let k = pos; k < pos + t.length; k++) marcado[mapa[k]] = true;
+      pos = norm.indexOf(t, pos + t.length);
+    }
+  });
+  let out = "", aberto = false;
+  chars.forEach((ch, idx) => {
+    if (marcado[idx] && !aberto) { out += "<mark>"; aberto = true; }
+    if (!marcado[idx] && aberto) { out += "</mark>"; aberto = false; }
+    out += escapeHtml(ch);
+  });
+  return aberto ? out + "</mark>" : out;
+}
+
+/* ---- Cards surgem ao rolar ---- */
+let revelador = null;
+function revelarCards() {
+  const cards = els.container.querySelectorAll(".card");
+  if (reduzMovimento || !("IntersectionObserver" in window)) {
+    cards.forEach((c) => c.classList.add("is-visible"));
+    return;
+  }
+  revelador?.disconnect();
+  revelador = new IntersectionObserver((entradas) => {
+    entradas
+      .filter((e) => e.isIntersecting)
+      .forEach((e, n) => {
+        e.target.style.setProperty("--d", `${Math.min(n, 6) * 70}ms`);
+        e.target.classList.add("is-visible");
+        revelador.unobserve(e.target);
+      });
+  }, { rootMargin: "0px 0px -6% 0px", threshold: 0.08 });
+  cards.forEach((c) => revelador.observe(c));
+}
+
+/* ---- Atalhos de seção + destaque da seção atual ---- */
+let espiao = null;
+function montarAtalhos() {
+  const nav = $("quicknav");
+  const secoes = [...els.container.querySelectorAll(".section")];
+  nav.hidden = secoes.length < 2;
+  nav.innerHTML = secoes
+    .map((sec) => {
+      const h2 = sec.querySelector("h2");
+      const n = sec.querySelectorAll(".card").length;
+      return `<a href="#${sec.id}" class="chip" data-alvo="${sec.id}">${escapeHtml(h2.textContent)}<span>${n}</span></a>`;
+    })
+    .join("");
+  espiao?.disconnect();
+  if (!("IntersectionObserver" in window) || !secoes.length) return;
+  const visiveis = new Map();
+  espiao = new IntersectionObserver((entradas) => {
+    entradas.forEach((e) => visiveis.set(e.target.id, e.isIntersecting ? e.boundingClientRect.top : null));
+    const atual = secoes.find((s) => visiveis.get(s.id) != null);
+    nav.querySelectorAll(".chip").forEach((c) => {
+      const ativo = atual && c.dataset.alvo === atual.id;
+      c.classList.toggle("is-active", !!ativo);
+      if (ativo) {
+        c.setAttribute("aria-current", "true");
+        const dx = c.offsetLeft - nav.scrollLeft - (nav.clientWidth - c.offsetWidth) / 2;
+        nav.scrollBy({ left: dx, behavior: reduzMovimento ? "auto" : "smooth" });
+      } else c.removeAttribute("aria-current");
+    });
+  }, { rootMargin: "-180px 0px -55% 0px" });
+  secoes.forEach((s) => espiao.observe(s));
+}
+
+/* ---- Contador com "pulo" quando muda ---- */
+let ultimoTotal = null;
+function animarContador() {
+  const total = els.container.querySelectorAll(".card").length;
+  if (ultimoTotal !== null && total !== ultimoTotal) {
+    els.count.classList.remove("bump");
+    void els.count.offsetWidth;
+    els.count.classList.add("bump");
+  }
+  ultimoTotal = total;
+}
+
+function aposRender() {
+  els.container.querySelectorAll(".section").forEach((s) => {
+    s.id = "area-" + s.getAttribute("aria-labelledby").slice(4);
+  });
+  revelarCards();
+  montarAtalhos();
+  animarContador();
+}
+
+/* ---- Números do topo contam de 0 até o total ---- */
+function contarAte(el, alvo) {
+  if (reduzMovimento) { el.textContent = alvo; return; }
+  const ini = performance.now(), dur = 1200;
+  const passo = (t) => {
+    const p = Math.min(1, (t - ini) / dur);
+    el.textContent = Math.round(alvo * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) requestAnimationFrame(passo);
+  };
+  requestAnimationFrame(passo);
+}
+
+/* ---- Card inclina e brilha seguindo o mouse (só em computador) ---- */
+function efeitoTilt() {
+  if (!temHover || reduzMovimento) return;
+  let atual = null;
+  els.container.addEventListener("pointermove", (e) => {
+    const card = e.target.closest(".card");
+    if (atual && atual !== card) soltar(atual);
+    atual = card;
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    card.style.setProperty("--mx", `${x * 100}%`);
+    card.style.setProperty("--my", `${y * 100}%`);
+    card.style.setProperty("--rx", `${(0.5 - y) * 6}deg`);
+    card.style.setProperty("--ry", `${(x - 0.5) * 8}deg`);
+    card.classList.add("is-tilting");
+  });
+  const soltar = (c) => {
+    c.classList.remove("is-tilting");
+    c.style.removeProperty("--rx");
+    c.style.removeProperty("--ry");
+  };
+  els.container.addEventListener("pointerleave", () => atual && soltar(atual));
+}
+
+/* ---- Onda ao tocar nos botões ---- */
+function efeitoOnda() {
+  document.addEventListener("pointerdown", (e) => {
+    const btn = e.target.closest(".btn, .copy-btn, .chip, .filter-option, .explore-btn, .fab-top");
+    if (!btn || reduzMovimento) return;
+    const r = btn.getBoundingClientRect();
+    const tam = Math.max(r.width, r.height) * 2;
+    const onda = document.createElement("span");
+    onda.className = "ripple";
+    onda.style.cssText = `width:${tam}px;height:${tam}px;left:${e.clientX - r.left - tam / 2}px;top:${e.clientY - r.top - tam / 2}px`;
+    btn.appendChild(onda);
+    onda.addEventListener("animationend", () => onda.remove());
+  });
+}
+
+/* ---- Cabeçalho: parallax do fundo e brasão que reage ao mouse ---- */
+function efeitoHero() {
+  const hero = document.querySelector(".hero");
+  const logo = $("logo");
+  if (reduzMovimento) return;
+  let agendado = false;
+  window.addEventListener("scroll", () => {
+    if (agendado) return;
+    agendado = true;
+    requestAnimationFrame(() => {
+      const y = Math.min(window.scrollY, hero.offsetHeight);
+      hero.style.setProperty("--py", `${y * 0.35}px`);
+      hero.style.setProperty("--fade", `${1 - y / hero.offsetHeight}`);
+      agendado = false;
+    });
+  }, { passive: true });
+  if (!temHover) return;
+  hero.addEventListener("pointermove", (e) => {
+    const r = hero.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+    logo.style.setProperty("--lx", `${x * 14}deg`);
+    logo.style.setProperty("--ly", `${-y * 14}deg`);
+  });
+  hero.addEventListener("pointerleave", () => {
+    logo.style.setProperty("--lx", "0deg");
+    logo.style.setProperty("--ly", "0deg");
+  });
+}
+
+/* ---- Barra fixa compacta, botão de voltar ao topo e atalho "/" ---- */
+function efeitoRolagem() {
+  const fab = $("fab-top");
+  const controls = $("controls");
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(([e]) => {
+      controls.classList.toggle("is-stuck", !e.isIntersecting);
+      fab.classList.toggle("is-shown", !e.isIntersecting);
+    }).observe($("controls-sentinel"));
+  }
+  fab.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduzMovimento ? "auto" : "smooth" }));
+  document.addEventListener("keydown", (e) => {
+    const digitando = /input|textarea|select/i.test(document.activeElement?.tagName || "");
+    if (e.key === "/" && !digitando) {
+      e.preventDefault();
+      els.search.focus();
+      controls.scrollIntoView({ behavior: reduzMovimento ? "auto" : "smooth", block: "start" });
+    }
+  });
+  $("quicknav").addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    e.preventDefault();
+    const alvo = document.getElementById(chip.dataset.alvo);
+    alvo?.scrollIntoView({ behavior: reduzMovimento ? "auto" : "smooth", block: "start" });
+  });
+}
+
+function iniciarDinamica() {
+  document.documentElement.classList.add("js-anim");
+  contarAte($("stat-contatos"), membros.length);
+  contarAte($("stat-areas"), areas.length);
+  efeitoTilt();
+  efeitoOnda();
+  efeitoHero();
+  efeitoRolagem();
+}
+
 /* ---------- Início ---------- */
 aplicarConfig();
 renderFiltro();
 render();
 ligarEventos();
+iniciarDinamica();
