@@ -852,3 +852,17 @@ mark {
   .js-anim .card { opacity: 1; translate: none; scale: none; }
   .hero-inner { opacity: 1; }
 }
+
+/* Botão "Salvar contato" ocupa a linha inteira abaixo de WhatsApp/Ligar */
+.btn-save {
+  grid-column: 1 / -1;
+  min-height: 46px;
+  color: var(--wine);
+  background: rgba(124, 21, 42, 0.06);
+  border: 1.5px dashed rgba(124, 21, 42, 0.3);
+  font-family: var(--font);
+}
+.btn-save svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.btn-save:hover { background: var(--wine); color: #fff; border-style: solid; border-color: var(--wine); }
+.card--featured .btn-save { color: var(--gold-strong); background: rgba(215, 163, 90, 0.08); border-color: rgba(215, 163, 90, 0.4); }
+.card--featured .btn-save:hover { background: var(--gold-strong); color: var(--ink); border-color: var(--gold-strong); }

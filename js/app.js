@@ -74,6 +74,7 @@ const ICON = {
   wa: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.91-4.45 9.91-9.91A9.85 9.85 0 0 0 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.23 8.23 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24a8.2 8.2 0 0 1 8.24 8.25c0 4.54-3.7 8.23-8.24 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.16.04-.31-.02-.43-.06-.13-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43h-.48a.92.92 0 0 0-.66.31c-.23.25-.87.85-.87 2.07 0 1.22.89 2.4 1.01 2.56.13.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.1-.23-.16-.48-.29Z"/></svg>',
   call: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>',
   copy: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  save: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>',
   check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
 };
 
@@ -190,6 +191,9 @@ function cardHtml(m, i, destaque) {
         <a class="btn btn-call" href="tel:+${m.ddi}${m.digitos}" aria-label="Ligar para ${nome}">
           ${ICON.call}<span>Ligar</span>
         </a>
+        <button type="button" class="btn btn-save" data-idx="${m.ordem}" aria-label="Salvar ${nome} nos contatos do celular">
+          ${ICON.save}<span>Salvar contato</span>
+        </button>
       </div>`
     : `<p class="no-phone">Telefone não informado</p>`;
 
@@ -287,6 +291,39 @@ function resetar() {
   els.search.focus();
 }
 
+/* ---------- Salvar contato (.vcf) ---------- */
+function vcardEscape(v) {
+  return String(v).replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/([,;])/g, "\\$1");
+}
+function gerarVcard(m) {
+  const partes = m.nome.split(" ");
+  const sobrenome = partes.length > 1 ? partes.pop() : "";
+  const linhas = [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    `N:${vcardEscape(sobrenome)};${vcardEscape(partes.join(" "))};;;`,
+    `FN:${vcardEscape(m.nome)}`,
+    "ORG:Gabinete Estadual DeMolay SP",
+    `TITLE:${vcardEscape(m.cargo)}`,
+    `TEL;TYPE=CELL:+${m.ddi}${m.digitos}`,
+    `NOTE:${vcardEscape([m.area, m.detalhe, CONFIG.gestao].filter(Boolean).join(" · "))}`,
+    "END:VCARD",
+  ];
+  return linhas.join("\r\n") + "\r\n";
+}
+function salvarContato(m) {
+  const blob = new Blob([gerarVcard(m)], { type: "text/vcard;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${m.nome}.vcf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast(`Abrindo contato de ${m.nome.split(" ")[0]}…`);
+}
+
 /* ---------- Copiar número ---------- */
 async function copiar(texto) {
   try {
@@ -364,6 +401,10 @@ function ligarEventos() {
     }
   });
 
+  els.container.addEventListener("click", (e) => {
+    const salvar = e.target.closest(".btn-save");
+    if (salvar) salvarContato(membros[Number(salvar.dataset.idx)]);
+  });
   els.container.addEventListener("click", async (e) => {
     const btn = e.target.closest(".copy-btn");
     if (!btn) return;
