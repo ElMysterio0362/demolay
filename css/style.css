@@ -181,7 +181,7 @@ body {
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
 }
-.search-wrap { position: relative; }
+.search-wrap { position: relative; z-index: 5; }
 .search-icon {
   position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
   width: 20px; height: 20px;
@@ -247,8 +247,10 @@ body {
   border: 1px solid var(--border);
   border-radius: 20px;
   box-shadow: 0 24px 60px rgba(13, 9, 13, 0.28);
-  max-height: 60vh;
+  max-height: min(60vh, calc(100vh - 140px));
+  max-height: min(60dvh, calc(100dvh - 140px));
   overflow-y: auto;
+  overscroll-behavior: contain;
   animation: drop .18s ease-out both;
 }
 .filter-head {
@@ -757,6 +759,8 @@ mark {
 
 /* Atalhos de seção */
 .quicknav {
+  position: relative;
+  z-index: 1;
   display: flex; gap: 8px;
   margin: 6px 0 2px;
   padding: 2px 4px 4px;

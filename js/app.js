@@ -273,11 +273,19 @@ function renderFiltro() {
 }
 
 function abrirPainel(abrir) {
+  if (abrir) {
+    // Se a barra ainda não está no topo, sobe até ela para o painel abrir dentro da tela.
+    const controls = $("controls");
+    if (controls.getBoundingClientRect().top > 24) {
+      const destino = window.scrollY + controls.getBoundingClientRect().top;
+      window.scrollTo({ top: destino, behavior: "auto" });
+    }
+  }
   els.panel.hidden = !abrir;
   els.filterBtn.setAttribute("aria-expanded", String(abrir));
   if (abrir) {
     const atual = els.options.querySelector('[aria-checked="true"]');
-    (atual || els.options.firstElementChild)?.focus();
+    (atual || els.options.firstElementChild)?.focus({ preventScroll: true });
   }
 }
 
