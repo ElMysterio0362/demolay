@@ -65,8 +65,8 @@ const CONFIG = {
   gestao: "Gestão 2026/2027",
   linhaSuperior: "DeMolay São Paulo",
   titulo: "Gabinete Estadual",
-  subtitulo: "Unidos pelo Ideal.",  // 2ª linha do título ("" para ocultar)
-  logo: "",                         // ex.: "assets/brasao.png"
+  subtitulo: "Solenes Propósitos.", // 2ª linha do título ("" para ocultar)
+  logo: "assets/brasao.jpg",        // "" para não mostrar
   ...
 };
 ```
