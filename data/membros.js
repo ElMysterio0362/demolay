@@ -284,6 +284,27 @@ const MEMBROS = [
     digitos: "3214109356",
     ddi: "1",
   },
+  {
+    nome: "Lucas Daniel Batista Painço",
+    cargo: "Assessor do TEDES",
+    area: "Projetos",
+    telefone: "(15) 99140-7454",
+    digitos: "15991407454",
+  },
+  {
+    nome: "Marcio Adriano Calcagno Devai Rodrigues",
+    cargo: "Assessor do TEDES",
+    area: "Projetos",
+    telefone: "(11) 97192-2825",
+    digitos: "11971922825",
+  },
+  {
+    nome: "Wandick Evangelista da Silva Júnior",
+    cargo: "Assessor do TEDES",
+    area: "Projetos",
+    telefone: "(16) 99618-7007",
+    digitos: "16996187007",
+  },
   // ── Regionais ─────────────────────────────────────────────────
   {
     nome: "José Roberto Scali Junior",
@@ -385,8 +406,8 @@ const MEMBROS = [
     cargo: "Mestre Conselheiro Regional - 2ª Região",
     area: "Mestres Conselheiros Regionais",
     detalhe: "Macro A+B",
-    telefone: "(11) 97192-2828",
-    digitos: "11971922828",
+    telefone: "(11) 97192-2825",
+    digitos: "11971922825",
   },
   {
     nome: "Gabriel Barbosa Freire de Oliveira",
